@@ -1,0 +1,5 @@
+{
+  "name": "Minimalist Popup Editor Plugin",
+  "description": "A lightweight, smart-positioning popup editor compatible with Bootstrap modals and complex layouts.",
+  "requestFramePermissions": []
+}

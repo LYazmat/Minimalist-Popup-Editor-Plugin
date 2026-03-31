@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Popup Editor Plugin - Vanilla JS</title>
+    <!-- Bootstrap 4.1.3 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <style>
+      body { background-color: #f8f9fa; padding: 50px; }
+      
+      /* Container with overflow hidden to test the "cut off" fix */
+      .overflow-container {
+        width: 300px;
+        height: 100px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        padding: 20px;
+        background: white;
+        margin-bottom: 20px;
+      }
+
+      /* Custom style for noStyle example */
+      .custom-btn {
+        background: #28a745;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mb-4">Popup Editor Plugin (Vanilla JS)</h1>
+      <p class="text-muted mb-5">Minimalista, inteligente e compatível com Bootstrap 4.</p>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">Teste de Overflow (Não corta mais!)</div>
+            <div class="card-body">
+              <div class="overflow-container">
+                Este item está em um container com <code>overflow: hidden</code>: 
+                <span id="edit-overflow">Clique aqui</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">Exemplo sem Estilo (noStyle)</div>
+            <div class="card-body">
+              <p>Este item usa <code>noStyle: true</code> e estilo customizado:</p>
+              <div class="custom-btn" id="edit-nostyle">Botão Customizado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card mb-4">
+            <div class="card-header">Exemplo com jQuery e Modal</div>
+            <div class="card-body">
+              <p>Este item é chamado via jQuery: <span id="edit-jquery">Texto jQuery</span></p>
+              <p>Item que pode ficar vazio: <span id="edit-empty">Apague-me</span></p>
+              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                Abrir Modal Bootstrap
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Configuração Dinâmica (Data Attributes)</h5>
+              <p class="card-text">
+                Este exemplo usa atributos <code>data-type</code> e <code>data-options</code> para decidir qual input renderizar.
+              </p>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                  Prioridade: <span id="edit-dynamic-select" data-type="select" data-options="Baixa,Média,Alta">Média</span>
+                </li>
+                <li class="list-group-item">
+                  Observação: <span id="edit-dynamic-text" data-type="textarea">Texto longo aqui...</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Perfil do Usuário</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Nome: <span id="edit-name">Marcus Miranda</span></p>
+              <p>E-mail: <span id="edit-email">marcus@example.com</span></p>
+              
+              <hr>
+              <h6>Inspeção de Segurança (Tri-State)</h6>
+              <div class="card p-3 bg-light">
+                <div class="d-flex align-items-center">
+                  <input type="checkbox" id="tristate-check" class="mr-2" style="transform: scale(1.5);">
+                  <span id="tristate-label" class="badge badge-secondary">Pendente</span>
+                </div>
+                <small class="text-muted mt-2">Clique no checkbox para editar a auditoria.</small>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-primary">Salvar mudanças</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/src/popup-editor.js"></script>
+    <script>
+      // Inicialização do Plugin
+      $(document).ready(function() {
+        
+        // Exemplo 1: Chamada via jQuery com Simulação de AJAX e Erro
+        $('#edit-jquery').popupEditor({
+          render: function(val) {
+            return `
+              <div class="form-group mb-0">
+                <label class="small font-weight-bold text-uppercase text-muted">Editar com AJAX</label>
+                <input type="text" class="form-control" value="${val}" id="input-jq">
+                <small class="text-muted">Digite "erro" para testar a mensagem.</small>
+              </div>
+            `;
+          },
+          onSave: function(el, api) {
+            const newValue = $('#input-jq').val();
+            
+            api.hideError();
+            api.setLoading(true);
+
+            // Simulação de requisição AJAX
+            setTimeout(() => {
+              if (newValue.toLowerCase() === 'erro') {
+                api.showError('Erro ao salvar: O servidor recusou o valor.');
+                api.setLoading(false);
+                // Note que NÃO chamamos api.close(), então o popup permanece aberto
+              } else {
+                $(el).text(newValue);
+                api.success(); // Feedback visual de sucesso antes de fechar
+              }
+            }, 1000);
+          }
+        });
+
+        // Exemplo 2: Item que pode ficar vazio com HTML customizado
+        $('#edit-empty').popupEditor({
+          emptyContent: '<b class="text-danger"><i class="fas fa-plus"></i> Clique para Adicionar</b>',
+          render: function(val) {
+            return `<input type="text" class="form-control" value="${val}" id="input-empty">`;
+          },
+          onSave: function(el, api) {
+            $(el).text($('#input-empty').val());
+            api.success();
+          }
+        });
+
+        // Exemplo 3: noStyle
+        $('#edit-nostyle').popupEditor({
+          noStyle: true,
+          render: function(val) {
+            return `<input type="text" class="form-control" value="${val}" id="input-nostyle">`;
+          },
+          onSave: function(el, api) {
+            $(el).text($('#input-nostyle').val());
+            api.success();
+          }
+        });
+
+        // Exemplo 4: Nome no Modal (Vanilla JS)
+        new PopupEditor(document.getElementById('edit-name'), {
+          render: function(currentValue, close) {
+            return `
+              <div class="form-group mb-0">
+                <label class="small font-weight-bold text-uppercase text-muted">Nome Completo</label>
+                <input type="text" class="form-control form-control-sm" value="${currentValue}" id="input-name">
+              </div>
+            `;
+          },
+          onSave: function(el, api) {
+            const newValue = document.getElementById('input-name').value;
+            el.innerText = newValue;
+            api.success();
+          }
+        });
+
+        // Exemplo 5: E-mail no Modal (Vanilla JS)
+        new PopupEditor(document.getElementById('edit-email'), {
+          render: function(currentValue, close) {
+            return `
+              <div class="form-group mb-0">
+                <label class="small font-weight-bold text-uppercase text-muted">E-mail</label>
+                <input type="email" class="form-control form-control-sm" value="${currentValue}" id="input-email">
+              </div>
+            `;
+          },
+          onSave: function(el, api) {
+            const newValue = document.getElementById('input-email').value;
+            el.innerText = newValue;
+            api.success();
+          }
+        });
+
+        // Exemplo 6: Item com Overflow (Vanilla JS)
+        new PopupEditor(document.getElementById('edit-overflow'), {
+          render: function(currentValue, close) {
+            return `
+              <div class="form-group mb-0">
+                <label class="small font-weight-bold text-uppercase text-muted">Editar Texto</label>
+                <textarea class="form-control form-control-sm" id="input-overflow">${currentValue}</textarea>
+              </div>
+            `;
+          },
+          onSave: function(el, api) {
+            el.innerText = document.getElementById('input-overflow').value;
+            api.success();
+          }
+        });
+
+        // Exemplo 7: Tri-State Checkbox com Lógica de Negócio (dentro do modal)
+        $('#tristate-check').popupEditor({
+          render: function() {
+            return `
+              <div class="form-group">
+                <label class="small font-weight-bold text-uppercase text-muted">Data da Inspeção</label>
+                <input type="date" class="form-control form-control-sm" id="audit-date">
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="audit-na">
+                <label class="form-check-label small" for="audit-na">N/A (Não Aplicável)</label>
+              </div>
+            `;
+          },
+          onSave: function(el, api) {
+            const dateVal = $('#audit-date').val();
+            const isNA = $('#audit-na').is(':checked');
+            const $check = $(el);
+            const $label = $('#tristate-label');
+
+            if (isNA) {
+              // Estado N/A (Indeterminado)
+              $check.prop('checked', false);
+              $check.prop('indeterminate', true);
+              $label.text('N/A').removeClass('badge-success badge-danger badge-secondary').addClass('badge-info');
+            } else if (dateVal) {
+              const auditDate = new Date(dateVal);
+              const oneYearAgo = new Date();
+              oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+              if (auditDate > oneYearAgo) {
+                // Realizado há menos de 1 ano (OK)
+                $check.prop('checked', true);
+                $check.prop('indeterminate', false);
+                $label.text('OK').removeClass('badge-info badge-danger badge-secondary').addClass('badge-success');
+              } else {
+                // Realizado há mais de 1 ano (Vencido)
+                $check.prop('checked', false);
+                $check.prop('indeterminate', false);
+                $label.text('Vencido').removeClass('badge-info badge-success badge-secondary').addClass('badge-danger');
+              }
+            } else {
+              // Sem data e sem N/A
+              $check.prop('checked', false);
+              $check.prop('indeterminate', false);
+              $label.text('Pendente').removeClass('badge-info badge-success badge-danger').addClass('badge-secondary');
+            }
+
+            api.success();
+          }
+        });
+
+        // Exemplo 8: Configuração Dinâmica via Atributos Data
+        $('[id^="edit-dynamic-"]').popupEditor({
+          render: function(val, close, el) {
+            const type = $(el).data('type');
+            
+            if (type === 'select') {
+              const options = $(el).data('options').split(',');
+              const optionsHtml = options.map(opt => 
+                `<option value="${opt}" ${opt === val ? 'selected' : ''}>${opt}</option>`
+              ).join('');
+              
+              return `
+                <div class="form-group mb-0">
+                  <label class="small font-weight-bold text-uppercase text-muted">Selecionar Opção</label>
+                  <select class="form-control form-control-sm" id="dynamic-input">${optionsHtml}</select>
+                </div>
+              `;
+            } else if (type === 'textarea') {
+              return `
+                <div class="form-group mb-0">
+                  <label class="small font-weight-bold text-uppercase text-muted">Editar Texto</label>
+                  <textarea class="form-control form-control-sm" id="dynamic-input" rows="3">${val}</textarea>
+                </div>
+              `;
+            }
+            
+            return `<input type="text" class="form-control form-control-sm" value="${val}" id="dynamic-input">`;
+          },
+          onSave: function(el, api) {
+            const newValue = $('#dynamic-input').val();
+            $(el).text(newValue);
+            api.success();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+
